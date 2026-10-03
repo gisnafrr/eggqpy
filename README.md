@@ -2,16 +2,38 @@
 
 Custom Pterodactyl runtime image for Qoupay.
 
+## Runtime & packages
+
+- Bun
+- Python
+- Node.js (switchable with `NODE_VERSION`)
+- FFmpeg
+- Golang
+- Redis
+- MariaDB client
+- PM2
+- PNPM
+- Speedtest CLI
+- Nodemon
+- Chromium
+- yt-dlp
+- Playwright
+- Cloudflare Tunnel
+- Git
+
 ## Features
 
-- Node.js runtime switching
-- Bun, Go, Python, Playwright
-- Cloudflare Tunnel support
 - GitHub auto-update on every container start/restart
 - Automatic dependency refresh when `package.json` / lockfile changes
+- Colored Qoupay runtime dashboard
+- Git branch and commit status on startup
 
-Image:
+## Docker image
 
 ```
 ghcr.io/gisnafrr/eggqpy:main
 ```
+
+## Pterodactyl egg
+
+Use the new `egg-qoupay-ultimate-runtime.json` file.
