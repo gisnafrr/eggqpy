@@ -21,6 +21,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libbz2-dev libreadline-dev libsqlite3-dev \
         libncurses-dev xz-utils tk-dev libffi-dev liblzma-dev \
         ffmpeg imagemagick graphicsmagick webp mediainfo \
+        chromium redis-server redis-tools mariadb-client \
     && mkdir -p --mode=0755 /usr/share/keyrings \
     && curl -fsSL https://pkg.cloudflare.com/cloudflare-public-v2.gpg | gpg --dearmor > /usr/share/keyrings/cloudflare-public-v2.gpg \
     && echo 'deb [signed-by=/usr/share/keyrings/cloudflare-public-v2.gpg] https://pkg.cloudflare.com/cloudflared any main' > /etc/apt/sources.list.d/cloudflared.list \
@@ -45,6 +46,7 @@ RUN cd /tmp \
     && make -j"$(nproc)" altinstall \
     && ln -sf /usr/local/bin/python3.13 /usr/local/bin/python3 \
     && ln -sf /usr/local/bin/pip3.13 /usr/local/bin/pip3 \
+    && pip3 install --no-cache-dir --upgrade yt-dlp speedtest-cli \
     && cd /tmp \
     && rm -rf Python-${PYTHON_VERSION}*
 
@@ -60,7 +62,7 @@ RUN mkdir -p "$PLAYWRIGHT_BROWSERS_PATH" \
     && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get update \
     && apt-get install -y --no-install-recommends nodejs \
-    && npm install -g playwright \
+    && npm install -g playwright pm2 pnpm nodemon \
     && npx playwright install --with-deps \
     && apt-get purge -y nodejs \
     && apt-get autoremove -y \
