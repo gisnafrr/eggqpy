@@ -94,8 +94,41 @@ echo -e "${CYAN}║${WHITE}                GITHUB AUTO UPDATE                  $
 echo -e "${CYAN}╠════════════════════════════════════════════════════╣${RESET}"
 
 if [ "${AUTO_UPDATE:-1}" = "1" ]; then
+    BRANCH_NAME="${BRANCH:-main}"
+
+    # Auto-bootstrap .git jika belum ada dan GIT_ADDRESS tersedia.
+    if [ ! -d "/home/container/.git" ] && [ -n "${GIT_ADDRESS}" ]; then
+        echo -e "${CYAN}║${RESET} ${PURPLE}⚙${RESET} .git belum ada, membuat repository..."
+
+        GIT_URL="${GIT_ADDRESS}"
+        case "$GIT_URL" in
+            *.git) ;;
+            *) GIT_URL="${GIT_URL}.git" ;;
+        esac
+
+        if [ -n "${USERNAME}" ] && [ -n "${ACCESS_TOKEN}" ]; then
+            REPO_PATH="$(echo "$GIT_URL" | sed -E 's#^https?://##')"
+            GIT_URL="https://${USERNAME}:${ACCESS_TOKEN}@${REPO_PATH}"
+        fi
+
+        git init >/dev/null 2>&1 || true
+
+        if git remote get-url origin >/dev/null 2>&1; then
+            git remote set-url origin "$GIT_URL"
+        else
+            git remote add origin "$GIT_URL"
+        fi
+
+        if git fetch --force --prune origin "$BRANCH_NAME"; then
+            git checkout -B "$BRANCH_NAME" "origin/$BRANCH_NAME" --force >/dev/null 2>&1 || true
+            git reset --hard "origin/$BRANCH_NAME" >/dev/null 2>&1 || true
+            echo -e "${CYAN}║${RESET} ${GREEN}✓${RESET} .git berhasil dibuat dan disinkronkan."
+        else
+            echo -e "${CYAN}║${RESET} ${RED}✗${RESET} Gagal membuat/sinkronisasi .git."
+        fi
+    fi
+
     if [ -d "/home/container/.git" ]; then
-        BRANCH_NAME="${BRANCH:-main}"
         OLD_COMMIT="$(git rev-parse --short HEAD 2>/dev/null || echo UNKNOWN)"
         BEFORE_DEPS="$(cat package.json package-lock.json pnpm-lock.yaml yarn.lock 2>/dev/null | sha256sum | awk '{print $1}')"
 
