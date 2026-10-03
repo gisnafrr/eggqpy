@@ -1,0 +1,132 @@
+{
+    "_comment": "DO NOT EDIT: FILE GENERATED AUTOMATICALLY BY PTERODACTYL PANEL - PTERODACTYL.IO",
+    "meta": {
+        "version": "PTDL_v2",
+        "update_url": null
+    },
+    "exported_at": "2026-10-03T23:10:00+07:00",
+    "name": "Qoupay Ultimate Runtime",
+    "author": "bagasalvi99@gmail.com",
+    "description": "Qoupay Indonesia multi-runtime shell with GitHub auto-update. Includes Node.js, Bun, Python, FFmpeg, Go, Redis, MariaDB client, PM2, PNPM, Speedtest CLI, Nodemon, Chromium, yt-dlp, Playwright and Cloudflare Tunnel.",
+    "features": null,
+    "docker_images": {
+        "Qoupay Ultimate": "ghcr.io/gisnafrr/eggqpy:main"
+    },
+    "file_denylist": [],
+    "startup": "/bin/bash",
+    "config": {
+        "files": "{}",
+        "startup": "{\r\n    \"done\": \"QOUPAY INDONESIA siap digunakan.\"\r\n}",
+        "logs": "{}",
+        "stop": "^^C"
+    },
+    "scripts": {
+        "installation": {
+            "script": "#!/bin/bash\nset -e\n\necho \"===========================================\"\necho \"        QOUPAY ULTIMATE INSTALLER\"\necho \"===========================================\"\n\napt-get update\napt-get install -y --no-install-recommends \\\n    git \\\n    curl \\\n    jq \\\n    file \\\n    unzip \\\n    ca-certificates\n\nmkdir -p /mnt/server\ncd /mnt/server\n\ngit config --global --add safe.directory /mnt/server || true\ngit config --global --add safe.directory /home/container || true\n\nif [ \"${USER_UPLOAD}\" = \"true\" ] || [ \"${USER_UPLOAD}\" = \"1\" ]; then\n    echo \"User upload mode enabled. Skip Git clone.\"\n    exit 0\nfi\n\nif [ -z \"${GIT_ADDRESS}\" ]; then\n    echo \"GIT_ADDRESS kosong. Skip Git clone.\"\n    exit 0\nfi\n\nGIT_URL=\"${GIT_ADDRESS}\"\ncase \"${GIT_URL}\" in\n    *.git) ;;\n    *) GIT_URL=\"${GIT_URL}.git\" ;;\nesac\n\nif [ -n \"${USERNAME}\" ] && [ -n \"${ACCESS_TOKEN}\" ]; then\n    REPO_PATH=\"$(echo \"${GIT_URL}\" | sed -E 's#^https?://##')\"\n    GIT_URL=\"https://${USERNAME}:${ACCESS_TOKEN}@${REPO_PATH}\"\nfi\n\nBRANCH_NAME=\"${BRANCH:-main}\"\nexport GIT_TERMINAL_PROMPT=0\n\necho \"Repository : ${GIT_ADDRESS}\"\necho \"Branch     : ${BRANCH_NAME}\"\n\nif [ -d .git ]; then\n    echo \".git ditemukan. Sinkronisasi repository...\"\n    if git remote get-url origin >/dev/null 2>&1; then\n        git remote set-url origin \"${GIT_URL}\"\n    else\n        git remote add origin \"${GIT_URL}\"\n    fi\n\n    git fetch --force --prune origin \"${BRANCH_NAME}\"\n    git checkout -B \"${BRANCH_NAME}\" \"origin/${BRANCH_NAME}\" --force || true\n    git reset --hard \"origin/${BRANCH_NAME}\"\nelse\n    if [ \"$(find /mnt/server -mindepth 1 -maxdepth 1 | head -n 1)\" ]; then\n        echo \"/mnt/server tidak kosong dan .git tidak ada.\"\n        echo \"Membersihkan folder sebelum clone...\"\n        find /mnt/server -mindepth 1 -maxdepth 1 -exec rm -rf {} +\n    fi\n\n    git clone --single-branch --branch \"${BRANCH_NAME}\" \"${GIT_URL}\" .\nfi\n\nif [ -f package.json ]; then\n    echo \"Installing Node.js dependencies...\"\n    npm install --omit=dev\nfi\n\necho \"===========================================\"\necho \"        INSTALL COMPLETE\"\necho \"===========================================\"\n",
+            "container": "node:20-bookworm-slim",
+            "entrypoint": "bash"
+        }
+    },
+    "variables": [
+        {
+            "name": "Node.js Version",
+            "description": "Versi Node.js. Contoh: 20, 22, 24.",
+            "env_variable": "NODE_VERSION",
+            "default_value": "20",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "nullable|string",
+            "field_type": "text"
+        },
+        {
+            "name": "Git Repository",
+            "description": "URL repository GitHub yang akan di-clone dan auto-update.",
+            "env_variable": "GIT_ADDRESS",
+            "default_value": "",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "nullable|string",
+            "field_type": "text"
+        },
+        {
+            "name": "Git Branch",
+            "description": "Branch repository. Default main.",
+            "env_variable": "BRANCH",
+            "default_value": "main",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "nullable|string",
+            "field_type": "text"
+        },
+        {
+            "name": "Git Username",
+            "description": "Username GitHub untuk repository private.",
+            "env_variable": "USERNAME",
+            "default_value": "",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "nullable|string",
+            "field_type": "text"
+        },
+        {
+            "name": "Git Access Token",
+            "description": "GitHub access token untuk repository private.",
+            "env_variable": "ACCESS_TOKEN",
+            "default_value": "",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "nullable|string",
+            "field_type": "text"
+        },
+        {
+            "name": "Auto Update Git",
+            "description": "1 = git bootstrap/fetch/reset otomatis setiap Start/Restart.",
+            "env_variable": "AUTO_UPDATE",
+            "default_value": "1",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "nullable|string",
+            "field_type": "text"
+        },
+        {
+            "name": "Auto Install Dependencies",
+            "description": "1 = install ulang dependency jika package/lockfile berubah.",
+            "env_variable": "AUTO_INSTALL_DEPS",
+            "default_value": "1",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "nullable|string",
+            "field_type": "text"
+        },
+        {
+            "name": "User Upload Mode",
+            "description": "1 = skip Git clone saat reinstall.",
+            "env_variable": "USER_UPLOAD",
+            "default_value": "0",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "nullable|string",
+            "field_type": "text"
+        },
+        {
+            "name": "Enable Cloudflare Tunnel",
+            "description": "true atau 1 untuk menjalankan Cloudflare Tunnel.",
+            "env_variable": "ENABLE_CF_TUNNEL",
+            "default_value": "false",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "nullable|string",
+            "field_type": "text"
+        },
+        {
+            "name": "Cloudflare Tunnel Token",
+            "description": "Token Cloudflare Tunnel.",
+            "env_variable": "CF_TOKEN",
+            "default_value": "",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "nullable|string",
+            "field_type": "text"
+        }
+    ]
+}
