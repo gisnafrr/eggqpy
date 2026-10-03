@@ -30,6 +30,22 @@ PURPLE="\033[1;35m"
 WHITE="\033[1;37m"
 GRAY="\033[0;37m"
 
+loading() {
+    local message="${1:-Loading}"
+    local duration="${2:-2}"
+    local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
+    local start=$SECONDS
+    local i=0
+
+    while (( SECONDS - start < duration )); do
+        printf "\r${CYAN}%s${RESET} ${WHITE}%s${RESET}" "${frames[$i]}" "$message"
+        i=$(( (i + 1) % ${#frames[@]} ))
+        sleep 0.08
+    done
+
+    printf "\r${GREEN}✓${RESET} ${WHITE}%s${RESET}\n" "$message"
+}
+
 # ==========================================================
 # Node.js runtime
 # ==========================================================
@@ -144,6 +160,9 @@ if [[ "${ENABLE_CF_TUNNEL}" == "true" ]] || [[ "${ENABLE_CF_TUNNEL}" == "1" ]]; 
 fi
 
 clear
+loading "Menyiapkan QOUPAY INDONESIA..." 1
+loading "Memuat informasi server..." 1
+loading "Memeriksa runtime & packages..." 1
 
 COMMIT_NOW="$(git rev-parse --short HEAD 2>/dev/null || echo UNKNOWN)"
 BRANCH_NOW="${BRANCH:-main}"
@@ -151,7 +170,6 @@ NODE_NOW="$(node -v 2>/dev/null || echo 'Not Installed')"
 BUN_NOW="$(bun -v 2>/dev/null || echo 'Not Installed')"
 GO_NOW="$(go version 2>/dev/null | awk '{print $3}' | sed 's/go//' || echo 'Not Installed')"
 PY_NOW="$(python3 --version 2>/dev/null | awk '{print $2}' || echo 'Not Installed')"
-PW_NOW="$(playwright --version 2>/dev/null | head -n 1 || echo 'Not Installed')"
 FFMPEG_NOW="$(ffmpeg -version 2>/dev/null | head -n 1 | awk '{print $3}' || echo 'Not Installed')"
 REDIS_NOW="$(redis-server --version 2>/dev/null | awk '{print $3}' | sed 's/v=//' || redis-cli --version 2>/dev/null | awk '{print $2}' || echo 'Not Installed')"
 MARIADB_NOW="$(mariadb --version 2>/dev/null | sed -E 's/.*Distrib ([^,]+).*/\1/' || echo 'Not Installed')"
@@ -161,52 +179,79 @@ SPEEDTEST_NOW="$(speedtest-cli --version 2>/dev/null | head -n 1 | awk '{print $
 NODEMON_NOW="$(nodemon -v 2>/dev/null || echo 'Not Installed')"
 CHROMIUM_NOW="$(chromium --version 2>/dev/null | awk '{print $2}' || echo 'Not Installed')"
 YTDLP_NOW="$(yt-dlp --version 2>/dev/null || echo 'Not Installed')"
+
 LOCATION_NOW="$(curl -s ipinfo.io/country 2>/dev/null || echo 'Unknown')"
+PUBLIC_IP_NOW="$(curl -s ipinfo.io/ip 2>/dev/null || echo 'Unknown')"
+ISP_NOW="$(curl -s ipinfo.io/org 2>/dev/null | sed -E 's/^AS[0-9]+[[:space:]]*//' || echo 'Unknown')"
 OS_NOW="$(grep -oP '(?<=^PRETTY_NAME=).+' /etc/os-release | tr -d '\"')"
+KERNEL_NOW="$(uname -sr)"
+ARCH_NOW="$(uname -m)"
 CPU_NOW="$(grep -m1 'model name' /proc/cpuinfo | cut -d: -f2 | sed 's/^ //')"
 CORES_NOW="$(grep -c '^processor' /proc/cpuinfo)"
 UPTIME_NOW="$(uptime -p | sed 's/up //')"
 RAM_NOW="$(free -m | awk '/Mem:/ {print $3" MB / "$2" MB"}')"
 DISK_NOW="$(df -h / | awk 'NR==2 {print $3" / "$2" ("$5")"}')"
+SERVER_TIME="$(date '+%Y-%m-%d %H:%M:%S')"
 
-echo -e "${CYAN}╔════════════════════════════════════════════════════╗${RESET}"
-echo -e "${CYAN}║${WHITE}${BOLD}                   Q O U P A Y                      ${CYAN}║${RESET}"
-echo -e "${CYAN}║${GRAY}              Cloud Runtime Environment             ${CYAN}║${RESET}"
-echo -e "${CYAN}╠════════════════════════════════════════════════════╣${RESET}"
+clear
 
-echo -e "${CYAN}║ ${PURPLE}${BOLD}GITHUB${RESET}"
-echo -e "${CYAN}║${RESET}  ${GREEN}✓${RESET} Auto Update   : ${GREEN}${AUTO_UPDATE:-1}${RESET}"
-echo -e "${CYAN}║${RESET}  ${BLUE}↻${RESET} Branch        : ${WHITE}$BRANCH_NOW${RESET}"
-echo -e "${CYAN}║${RESET}  ${YELLOW}◆${RESET} Commit        : ${YELLOW}$COMMIT_NOW${RESET}"
+echo -e "${RED}${BOLD}"
+echo '  ██████╗  ██████╗ ██╗   ██╗██████╗  █████╗ ██╗   ██╗'
+echo ' ██╔═══██╗██╔═══██╗██║   ██║██╔══██╗██╔══██╗╚██╗ ██╔╝'
+echo ' ██║   ██║██║   ██║██║   ██║██████╔╝███████║ ╚████╔╝ '
+echo ' ██║▄▄ ██║██║   ██║██║   ██║██╔═══╝ ██╔══██║  ╚██╔╝  '
+echo ' ╚██████╔╝╚██████╔╝╚██████╔╝██║     ██║  ██║   ██║   '
+echo '  ╚══▀▀═╝  ╚═════╝  ╚═════╝ ╚═╝     ╚═╝  ╚═╝   ╚═╝   '
+echo -e "${RESET}${WHITE}${BOLD}                    I N D O N E S I A${RESET}"
+echo -e "${GRAY}                Qoupay Runtime Environment${RESET}"
+echo -e "${CYAN}────────────────────────────────────────────────────────────${RESET}"
 
-echo -e "${CYAN}╠════════════════════════════════════════════════════╣${RESET}"
-echo -e "${CYAN}║ ${PURPLE}${BOLD}RUNTIME${RESET}"
-echo -e "${CYAN}║${RESET}  ${GREEN}●${RESET} Node.js       : ${WHITE}$NODE_NOW${RESET}"
-echo -e "${CYAN}║${RESET}  ${GREEN}●${RESET} Bun           : ${WHITE}v$BUN_NOW${RESET}"
-echo -e "${CYAN}║${RESET}  ${GREEN}●${RESET} Python        : ${WHITE}v$PY_NOW${RESET}"
-echo -e "${CYAN}║${RESET}  ${GREEN}●${RESET} Golang        : ${WHITE}v$GO_NOW${RESET}"
-echo -e "${CYAN}║${RESET}  ${GREEN}●${RESET} Playwright    : ${WHITE}$PW_NOW${RESET}"
-echo -e "${CYAN}║${RESET}  ${GREEN}●${RESET} FFmpeg        : ${WHITE}$FFMPEG_NOW${RESET}"
-echo -e "${CYAN}║${RESET}  ${GREEN}●${RESET} Redis         : ${WHITE}$REDIS_NOW${RESET}"
-echo -e "${CYAN}║${RESET}  ${GREEN}●${RESET} MariaDB       : ${WHITE}$MARIADB_NOW${RESET}"
-echo -e "${CYAN}║${RESET}  ${GREEN}●${RESET} PM2           : ${WHITE}$PM2_NOW${RESET}"
-echo -e "${CYAN}║${RESET}  ${GREEN}●${RESET} PNPM          : ${WHITE}$PNPM_NOW${RESET}"
-echo -e "${CYAN}║${RESET}  ${GREEN}●${RESET} Speedtest CLI : ${WHITE}$SPEEDTEST_NOW${RESET}"
-echo -e "${CYAN}║${RESET}  ${GREEN}●${RESET} Nodemon       : ${WHITE}$NODEMON_NOW${RESET}"
-echo -e "${CYAN}║${RESET}  ${GREEN}●${RESET} Chromium      : ${WHITE}$CHROMIUM_NOW${RESET}"
-echo -e "${CYAN}║${RESET}  ${GREEN}●${RESET} yt-dlp        : ${WHITE}$YTDLP_NOW${RESET}"
+echo -e "${YELLOW}                     【 SYSTEM INFO 】${RESET}"
+echo -e "${CYAN}➢${RESET} ${WHITE}ISP         :${RESET} ${CYAN}$ISP_NOW${RESET}"
+echo -e "${CYAN}➢${RESET} ${WHITE}IPv4        :${RESET} ${CYAN}$PUBLIC_IP_NOW${RESET}"
+echo -e "${CYAN}➢${RESET} ${WHITE}Country     :${RESET} ${RED}$LOCATION_NOW${RESET}"
+echo -e "${CYAN}➢${RESET} ${WHITE}OS          :${RESET} ${PURPLE}$OS_NOW${RESET}"
+echo -e "${CYAN}➢${RESET} ${WHITE}Kernel      :${RESET} ${PURPLE}$KERNEL_NOW${RESET}"
+echo -e "${CYAN}➢${RESET} ${WHITE}Arch        :${RESET} ${PURPLE}$ARCH_NOW${RESET}"
+echo -e "${CYAN}➢${RESET} ${WHITE}Uptime      :${RESET} ${RED}$UPTIME_NOW${RESET}"
+echo -e "${CYAN}────────────────────────────────────────────────────────────${RESET}"
 
-echo -e "${CYAN}╠════════════════════════════════════════════════════╣${RESET}"
-echo -e "${CYAN}║ ${PURPLE}${BOLD}SYSTEM${RESET}"
-echo -e "${CYAN}║${RESET}  ${BLUE}●${RESET} Location      : ${WHITE}$LOCATION_NOW${RESET}"
-echo -e "${CYAN}║${RESET}  ${BLUE}●${RESET} OS            : ${WHITE}$OS_NOW${RESET}"
-echo -e "${CYAN}║${RESET}  ${BLUE}●${RESET} CPU           : ${WHITE}$CPU_NOW ($CORES_NOW Cores)${RESET}"
-echo -e "${CYAN}║${RESET}  ${BLUE}●${RESET} Uptime        : ${WHITE}$UPTIME_NOW${RESET}"
-echo -e "${CYAN}║${RESET}  ${BLUE}●${RESET} RAM           : ${WHITE}$RAM_NOW${RESET}"
-echo -e "${CYAN}║${RESET}  ${BLUE}●${RESET} Disk          : ${WHITE}$DISK_NOW${RESET}"
+echo -e "${CYAN}➢${RESET} ${WHITE}NodeJS Ver  :${RESET} ${YELLOW}$NODE_NOW${RESET}"
+echo -e "${CYAN}➢${RESET} ${WHITE}Python Ver  :${RESET} ${GREEN}$PY_NOW${RESET}"
+echo -e "${CYAN}➢${RESET} ${WHITE}Bun Ver     :${RESET} ${PURPLE}v$BUN_NOW${RESET}"
+echo -e "${CYAN}➢${RESET} ${WHITE}Golang Ver  :${RESET} ${BLUE}v$GO_NOW${RESET}"
+echo -e "${CYAN}────────────────────────────────────────────────────────────${RESET}"
 
-echo -e "${CYAN}╠════════════════════════════════════════════════════╣${RESET}"
-echo -e "${CYAN}║${RESET}  ${CF_COLOR}● Cloudflare Tunnel : $CF_STATUS${RESET}"
-echo -e "${CYAN}╚════════════════════════════════════════════════════╝${RESET}"
+echo -e "${YELLOW}                     【 SERVER USAGE 】${RESET}"
+echo -e "${CYAN}➢${RESET} ${WHITE}CPU Cores   :${RESET} ${PURPLE}$CORES_NOW Core(s) [$ARCH_NOW]${RESET}"
+echo -e "${CYAN}➢${RESET} ${WHITE}CPU Model   :${RESET} ${GRAY}$CPU_NOW${RESET}"
+echo -e "${CYAN}➢${RESET} ${WHITE}Memory      :${RESET} ${GREEN}$RAM_NOW${RESET}"
+echo -e "${CYAN}➢${RESET} ${WHITE}Disk Space  :${RESET} ${GREEN}$DISK_NOW${RESET}"
+echo -e "${CYAN}➢${RESET} ${WHITE}Server Time :${RESET} ${CYAN}$SERVER_TIME${RESET}"
+echo -e "${CYAN}────────────────────────────────────────────────────────────${RESET}"
+
+echo -e "${YELLOW}                       【 GITHUB 】${RESET}"
+echo -e "${CYAN}➢${RESET} ${WHITE}Auto Update :${RESET} ${GREEN}${AUTO_UPDATE:-1}${RESET}"
+echo -e "${CYAN}➢${RESET} ${WHITE}Branch      :${RESET} ${BLUE}$BRANCH_NOW${RESET}"
+echo -e "${CYAN}➢${RESET} ${WHITE}Commit      :${RESET} ${YELLOW}$COMMIT_NOW${RESET}"
+echo -e "${CYAN}────────────────────────────────────────────────────────────${RESET}"
+
+echo -e "${YELLOW}                      【 PACKAGES 】${RESET}"
+echo -e "${WHITE}  BUN, PYTHON, NODEJS, FFMPEG, GOLANG, REDIS, MARIADB${RESET}"
+echo -e "${WHITE}  PM2, PNPM, SPEEDTEST-CLI, NODEMON, CHROMIUM, YT-DLP${RESET}"
+echo -e "${GRAY}  Redis $REDIS_NOW | MariaDB $MARIADB_NOW | FFmpeg $FFMPEG_NOW${RESET}"
+echo -e "${GRAY}  PM2 $PM2_NOW | PNPM $PNPM_NOW | Nodemon $NODEMON_NOW${RESET}"
+echo -e "${GRAY}  Chromium $CHROMIUM_NOW | yt-dlp $YTDLP_NOW | Speedtest $SPEEDTEST_NOW${RESET}"
+echo -e "${CYAN}────────────────────────────────────────────────────────────${RESET}"
+
+if [ "$CF_STATUS" = "ACTIVE" ]; then
+    echo -e "${GREEN}✓ Cloudflare Tunnel aktif.${RESET}"
+else
+    echo -e "${YELLOW}• Cloudflare Tunnel nonaktif.${RESET}"
+fi
+
+echo -e "${CYAN}────────────────────────────────────────────────────────────${RESET}"
+echo -e "${GREEN}✓ QOUPAY INDONESIA siap digunakan.${RESET}"
+echo ""
 
 exec /bin/bash
