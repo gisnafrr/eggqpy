@@ -58,7 +58,7 @@ if [ -n "${NODE_VERSION}" ]; then
         if curl -fL "https://nodejs.org/dist/${TARGET_VER}/node-${TARGET_VER}-linux-x64.tar.gz" -o node.tar.gz; then
             tar -xf node.tar.gz --strip-components=1 -C "$NODE_DIR"
             rm -f node.tar.gz
-            "$NODE_DIR/bin/npm" install -g pm2 pnpm yarn playwright --loglevel=error || true
+            "$NODE_DIR/bin/npm" install -g pm2 pnpm yarn playwright nodemon --loglevel=error || true
         else
             echo -e "${RED}[Runtime]${RESET} Failed to download Node.js $TARGET_VER."
         fi
@@ -152,6 +152,15 @@ BUN_NOW="$(bun -v 2>/dev/null || echo 'Not Installed')"
 GO_NOW="$(go version 2>/dev/null | awk '{print $3}' | sed 's/go//' || echo 'Not Installed')"
 PY_NOW="$(python3 --version 2>/dev/null | awk '{print $2}' || echo 'Not Installed')"
 PW_NOW="$(playwright --version 2>/dev/null | head -n 1 || echo 'Not Installed')"
+FFMPEG_NOW="$(ffmpeg -version 2>/dev/null | head -n 1 | awk '{print $3}' || echo 'Not Installed')"
+REDIS_NOW="$(redis-server --version 2>/dev/null | awk '{print $3}' | sed 's/v=//' || redis-cli --version 2>/dev/null | awk '{print $2}' || echo 'Not Installed')"
+MARIADB_NOW="$(mariadb --version 2>/dev/null | sed -E 's/.*Distrib ([^,]+).*/\1/' || echo 'Not Installed')"
+PM2_NOW="$(pm2 -v 2>/dev/null | tail -n 1 || echo 'Not Installed')"
+PNPM_NOW="$(pnpm -v 2>/dev/null || echo 'Not Installed')"
+SPEEDTEST_NOW="$(speedtest-cli --version 2>/dev/null | head -n 1 | awk '{print $2}' || echo 'Not Installed')"
+NODEMON_NOW="$(nodemon -v 2>/dev/null || echo 'Not Installed')"
+CHROMIUM_NOW="$(chromium --version 2>/dev/null | awk '{print $2}' || echo 'Not Installed')"
+YTDLP_NOW="$(yt-dlp --version 2>/dev/null || echo 'Not Installed')"
 LOCATION_NOW="$(curl -s ipinfo.io/country 2>/dev/null || echo 'Unknown')"
 OS_NOW="$(grep -oP '(?<=^PRETTY_NAME=).+' /etc/os-release | tr -d '\"')"
 CPU_NOW="$(grep -m1 'model name' /proc/cpuinfo | cut -d: -f2 | sed 's/^ //')"
@@ -177,6 +186,15 @@ echo -e "${CYAN}║${RESET}  ${GREEN}●${RESET} Bun           : ${WHITE}v$BUN_N
 echo -e "${CYAN}║${RESET}  ${GREEN}●${RESET} Python        : ${WHITE}v$PY_NOW${RESET}"
 echo -e "${CYAN}║${RESET}  ${GREEN}●${RESET} Golang        : ${WHITE}v$GO_NOW${RESET}"
 echo -e "${CYAN}║${RESET}  ${GREEN}●${RESET} Playwright    : ${WHITE}$PW_NOW${RESET}"
+echo -e "${CYAN}║${RESET}  ${GREEN}●${RESET} FFmpeg        : ${WHITE}$FFMPEG_NOW${RESET}"
+echo -e "${CYAN}║${RESET}  ${GREEN}●${RESET} Redis         : ${WHITE}$REDIS_NOW${RESET}"
+echo -e "${CYAN}║${RESET}  ${GREEN}●${RESET} MariaDB       : ${WHITE}$MARIADB_NOW${RESET}"
+echo -e "${CYAN}║${RESET}  ${GREEN}●${RESET} PM2           : ${WHITE}$PM2_NOW${RESET}"
+echo -e "${CYAN}║${RESET}  ${GREEN}●${RESET} PNPM          : ${WHITE}$PNPM_NOW${RESET}"
+echo -e "${CYAN}║${RESET}  ${GREEN}●${RESET} Speedtest CLI : ${WHITE}$SPEEDTEST_NOW${RESET}"
+echo -e "${CYAN}║${RESET}  ${GREEN}●${RESET} Nodemon       : ${WHITE}$NODEMON_NOW${RESET}"
+echo -e "${CYAN}║${RESET}  ${GREEN}●${RESET} Chromium      : ${WHITE}$CHROMIUM_NOW${RESET}"
+echo -e "${CYAN}║${RESET}  ${GREEN}●${RESET} yt-dlp        : ${WHITE}$YTDLP_NOW${RESET}"
 
 echo -e "${CYAN}╠════════════════════════════════════════════════════╣${RESET}"
 echo -e "${CYAN}║ ${PURPLE}${BOLD}SYSTEM${RESET}"
