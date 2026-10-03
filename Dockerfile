@@ -8,8 +8,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     NODE_INSTALL_DIR=/home/container/node \
     BUN_INSTALL=/usr/local/bun \
     PLAYWRIGHT_BROWSERS_PATH=/usr/local/share/playwright \
-    GO_VERSION=1.24.0 \
-    PYTHON_VERSION=3.13.0
+    GO_VERSION=1.24.0
 
 ENV PATH="$NODE_INSTALL_DIR/bin:$BUN_INSTALL/bin:/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
@@ -22,6 +21,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libncurses-dev xz-utils tk-dev libffi-dev liblzma-dev \
         ffmpeg imagemagick graphicsmagick webp mediainfo \
         chromium redis-server redis-tools mariadb-client \
+        python3 python3-pip python3-venv yt-dlp speedtest-cli \
     && mkdir -p --mode=0755 /usr/share/keyrings \
     && curl -fsSL https://pkg.cloudflare.com/cloudflare-public-v2.gpg | gpg --dearmor > /usr/share/keyrings/cloudflare-public-v2.gpg \
     && echo 'deb [signed-by=/usr/share/keyrings/cloudflare-public-v2.gpg] https://pkg.cloudflare.com/cloudflared any main' > /etc/apt/sources.list.d/cloudflared.list \
@@ -37,18 +37,6 @@ RUN cd /tmp \
     && wget -q https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz \
     && tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz \
     && rm go*.tar.gz
-
-RUN cd /tmp \
-    && wget -q https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz \
-    && tar xzf Python-${PYTHON_VERSION}.tgz \
-    && cd Python-${PYTHON_VERSION} \
-    && ./configure --enable-optimizations \
-    && make -j"$(nproc)" altinstall \
-    && ln -sf /usr/local/bin/python3.13 /usr/local/bin/python3 \
-    && ln -sf /usr/local/bin/pip3.13 /usr/local/bin/pip3 \
-    && pip3 install --no-cache-dir --upgrade yt-dlp speedtest-cli \
-    && cd /tmp \
-    && rm -rf Python-${PYTHON_VERSION}*
 
 RUN cd /tmp \
     && wget -q https://github.com/oven-sh/bun/releases/latest/download/bun-linux-x64.zip \
